@@ -1,0 +1,75 @@
+---
+title: "formative.rmd"
+author: "Yang XU"
+date: "October 5, 2017"
+output: html_document
+---
+
+```{}
+D1 <- read.csv("~/Downloads/HMXPC13_DI_v2_5-14-14.csv")
+```
+
+
+Q6:How many people enrolled in HarvardX/CS50x recieved certification in 2012? (Please inlcude your code in your markdown document)?
+A: There are in total 1287 students enrolled in HarvardX/CS50x recieved certification in 2012.
+```{r}
+sum(D1$course_id == "HarvardX/CS50x/2012" & D1$certified == "1")
+```
+
+Q7: How many people registered for HarvardX/CS50x from Columbia on October 15, 2012? (Please inlcude your code in your markdown document)
+A:There are 10 people registered for the course from Columbia on October 15,2012, BUT! there 0 people registered from Columbia that day, if this is teh answer you oringinally asked for.
+```{r}
+sum(D1$course_id == "HarvardX/CS50x/2012" & D1$final_cc_cname_DI == "Colombia" & D1$start_time_DI == "2012-10-15")
+```
+
+
+Q8:Create a new data frame (D2) that includes student ID and registration date for all students from a country of your choice (Please inlcude your code in your markdown document)
+```{r}
+D2 <- subset(D1, final_cc_cname_DI == "Australia",select = c(userid_DI,start_time_DI,final_cc_cname_DI))
+D2
+```
+
+Q9:Create a new data frame (D3) in which the column names are the registration dates, with one column containing the student ids and all other cells indicating a 1 if the student registered on that date or an NA if they did not (hint: you will need to create a new variable before you change the structure of your data frame)
+```{r}
+library(tidyr)
+library(dplyr)
+D3 <- D2[c("userid_DI","start_time_DI")]
+D3$default_value <-1
+D3 <- mutate(D3, row=row_number())
+D3
+D3 <- tidyr::spread(D3, key="start_time_DI",value="default_value", fill = NA, convert = FALSE, drop = TRUE)
+D3
+```
+
+Q10:Now make the row names of D3 the student ids on your new data frame and remove the user id column from your data frame
+(so it is changing the variable row to student_id)
+```{r}
+names(D3)[names(D3) == 'row'] <- 'student_id'
+D3
+#now to drop the user_id, which is the first column 
+D3 <- subset(D3, select = -1)
+D3
+```
+Q11:Convert your data frame to a matrix (M1)
+```{r}
+M1 <-as.matrix(D3)
+M1
+```
+
+Q12:Create a new matrix which is the transposed version of your matrix (M2)
+```{r}
+M2 <-t(M1)
+M2
+```
+
+Q13:Create a third matrix (M3) that is a student by student matrix where the cells in the matrix represent if two studentes registered on the same day (This will take a lot of processing power, you may not be able to complete it if you have a large number of students)
+
+```{r}
+#to creat a student by student matrix, so just do matrix multiplication
+M3<-M1 %*% M2
+```
+
+Q14:Convert the diagonal of your matrix into NAs
+```{r}
+diag(M3) <- NA
+```
